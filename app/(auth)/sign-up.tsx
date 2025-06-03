@@ -16,7 +16,7 @@ const SignUp = () => {
 
     const [emailAddress, setEmailAddress] = useState('')
     const [password, setPassword] = useState('')
-    const [pendingVerification, setPendingVerification] = React.useState(false)
+    const [pendingVerification, setPendingVerification] = useState(false)
     const [code, setCode] = useState('')
 
     const [form, setForm] = useState({
