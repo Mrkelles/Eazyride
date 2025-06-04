@@ -2,6 +2,7 @@ import CustomButton from '@/components/CustomButton'
 import InputField from '@/components/InputField'
 import OAuth from '@/components/OAuth'
 import { icons, images } from '@/constants'
+import { fetchAPI } from '@/lib/fetch'
 import { useSignUp } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
 import React, { useState } from 'react'
@@ -62,15 +63,24 @@ const SignUp = () => {
 
         try {
             // Use the code the user provided to attempt verification
-            const signUpAttempt = await signUp.attemptEmailAddressVerification({
+            const completeSignUp = await signUp.attemptEmailAddressVerification({
                 code: verification.code,
             });
 
             // If verification was completed, set the session to active
             // and redirect the user
-            if (signUpAttempt.status === 'complete') {
-                //TODO: Create a DB User
-                await setActive({ session: signUpAttempt.createdSessionId })
+            if (completeSignUp.status === 'complete') {
+                //Create a DB User
+                await fetchAPI('/(api)/user', {
+                    method: "POST",
+                    body: JSON.stringify({
+                        name: form.name,
+                        email: form.email,
+                        clerkId: completeSignUp.createdUserId,
+                    }),
+                })
+
+                await setActive({ session: completeSignUp.createdSessionId })
                 setVerification({ ...verification, state: 'success' })
             } else {
                 setVerification({
@@ -78,7 +88,7 @@ const SignUp = () => {
                     error: 'Verification Failed',
                     state: 'failed'
                 });
-                console.error(JSON.stringify(signUpAttempt, null, 2))
+                console.error(JSON.stringify(completeSignUp, null, 2))
             }
         } catch (err: any) {
             setVerification({
